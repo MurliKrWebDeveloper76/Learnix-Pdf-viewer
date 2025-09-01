@@ -1,0 +1,1700 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learnix PDF Viewer – Free Online Vertical PDF Reader with Upload</title>
+    <meta name="description" content="View and upload PDFs online with vertical scrolling mode, zoom, download, and more features.">
+    <meta property="og:title" content="Learnix PDF Viewer – Free Online PDF Reader">
+    <meta property="og:description" content="View PDFs online with vertical scrolling mode, zoom, download, and more.">
+    <meta property="og:image" content="https://i.supaimg.com/5aa6f3e6-1291-4b63-879e-7870fcdac1d6.png">
+    <meta property="og:url" content="https://learnix.com/pdf-viewer">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" href="https://i.supaimg.com/5aa6f3e6-1291-4b63-879e-7870fcdac1d6.png" type="image/png">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #FFD700;
+            --primary-dark: #e6bf00;
+            --white: #FFFFFF;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            --primary: #FFD700;
+            --primary-dark: #e6bf00;
+            --white: #121212;
+            --light: #1e1e1e;
+            --dark: #f8f9fa;
+            --gray: #adb5bd;
+            --light-gray: #2d2d2d;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: var(--transition);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--white);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--light-gray);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Header */
+        header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            height: 40px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--dark);
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--primary);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Welcome Modal */
+        #welcome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #welcome-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transform: scale(0.9);
+        }
+
+        #welcome-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-logo {
+            height: 70px;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .modal-text {
+            margin-bottom: 1.5rem;
+            color: var(--gray);
+        }
+
+        .telegram-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: #0088cc;
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .telegram-btn:hover {
+            background-color: #006da3;
+        }
+
+        .close-modal {
+            background-color: var(--primary);
+            color: var(--dark);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* PDF Loader Section */
+        .pdf-loader {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .input-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .url-input-container {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .url-input:focus {
+            border-color: var(--primary);
+        }
+
+        .load-btn {
+            background-color: var(--primary);
+            color: var(--dark);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .load-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--gray);
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: var(--light-gray);
+        }
+
+        .upload-container {
+            border: 2px dashed var(--light-gray);
+            border-radius: 12px;
+            padding: 2rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .upload-container:hover {
+            border-color: var(--primary);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .upload-subtext {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        /* PDF Viewer */
+        #pdf-viewer-container {
+            background-color: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .viewer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background-color: var(--light);
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .viewer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .viewer-controls {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background-color: var(--white);
+            border: 1px solid var(--light-gray);
+            color: var(--dark);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .control-btn:hover {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .viewer-body {
+            padding: 1.5rem;
+            overflow: auto;
+        }
+
+        /* Vertical View */
+        #pdf-vertical-view {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .page-container {
+            box-shadow: var(--shadow);
+            margin: 0 auto;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .page-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .page-container:hover .fullscreen-btn {
+            opacity: 1;
+        }
+
+        .canvas-container {
+            position: relative;
+        }
+
+        .pdf-page-canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .fullscreen-btn:hover {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .page-info {
+            text-align: center;
+            margin-top: 1rem;
+            color: var(--gray);
+        }
+
+        /* Search Modal */
+        #search-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 1500;
+            width: 90%;
+            max-width: 500px;
+            display: none;
+        }
+
+        #search-modal.active {
+            display: block;
+        }
+
+        .search-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .search-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .close-search {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-btn {
+            background-color: var(--primary);
+            color: var(--dark);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+
+        .search-result-item {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--light-gray);
+            cursor: pointer;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background-color: var(--primary);
+        }
+
+        /* Share Modal */
+        #share-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 1500;
+            width: 90%;
+            max-width: 500px;
+            display: none;
+        }
+
+        #share-modal.active {
+            display: block;
+        }
+
+        .share-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .share-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .close-share {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .share-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .share-option:hover {
+            background-color: var(--primary);
+        }
+
+        .share-icon {
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        .share-option-name {
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .share-link-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .share-link-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .copy-link-btn {
+            background-color: var(--primary);
+            color: var(--dark);
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-link-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* Full Screen Mode */
+        #fullscreen-pdf-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #fullscreen-pdf-view.active {
+            display: flex;
+        }
+
+        .fullscreen-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+        }
+
+        .fullscreen-title {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .fullscreen-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .fullscreen-control-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .fullscreen-control-btn:hover {
+            background-color: var(--primary);
+            color: var(--dark);
+        }
+
+        .fullscreen-body {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+        }
+
+        .fullscreen-page-container {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .fullscreen-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .fullscreen-page-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--white);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+
+        .footer-text {
+            margin-bottom: 1rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .footer-link {
+            color: var(--dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .url-input-container {
+                flex-direction: column;
+            }
+            
+            .share-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .viewer-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .viewer-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .fullscreen-controls {
+                gap: 0.5rem;
+            }
+            
+            .fullscreen-control-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .share-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .pdf-loader, #pdf-viewer-container {
+                padding: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.3rem;
+            }
+            
+            .upload-container {
+                padding: 1.5rem;
+            }
+            
+            .fullscreen-header {
+                padding: 1rem;
+            }
+            
+            .fullscreen-title {
+                font-size: 1rem;
+            }
+        }
+
+        /* Overlay for modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1400;
+            display: none;
+        }
+        
+        .modal-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div id="welcome-modal">
+        <div class="modal-content">
+            <img src="https://i.supaimg.com/5aa6f3e6-1291-4b63-879e-7870fcdac1d6.png" alt="Learnix Logo" class="modal-logo">
+            <h2 class="modal-title">Welcome to Learnix PDF Viewer</h2>
+            <p class="modal-text">View your PDF files online with vertical scrolling mode, zoom, download, and more features.</p>
+            <a href="https://t.me/Learnix_official" class="telegram-btn" target="_blank">
+                <i class="fab fa-telegram"></i> Join Our Telegram
+            </a>
+            <br>
+            <button class="close-modal">Get Started</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-container">
+            <img src="https://i.supaimg.com/5aa6f3e6-1291-4b63-879e-7870fcdac1d6.png" alt="Learnix Logo" class="logo">
+            <h1>Learnix PDF Viewer</h1>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link"><i class="fas fa-home"></i> Home</a>
+            <label for="file-input" class="nav-link"><i class="fas fa-upload"></i> Upload PDF</label>
+            <a href="https://t.me/Learnix_official" class="nav-link" target="_blank"><i class="fab fa-telegram"></i> Telegram</a>
+            <a href="#" class="nav-link" id="share-btn"><i class="fas fa-share-alt"></i> Share</a>
+            <button class="theme-toggle" id="theme-toggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- PDF Loader Section -->
+        <section class="pdf-loader">
+            <h2 class="section-title"><i class="fas fa-file-pdf"></i> View PDF Documents</h2>
+            <div class="input-options">
+                <div class="url-input-container">
+                    <input type="url" class="url-input" id="pdf-url" placeholder="Paste PDF URL here...">
+                    <button class="load-btn" id="load-pdf">
+                        <i class="fas fa-download"></i> Load PDF
+                    </button>
+                </div>
+                
+                <div class="divider">OR</div>
+                
+                <div class="upload-container" id="upload-area">
+                    <input type="file" id="file-input" accept=".pdf">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <p class="upload-text">Upload a PDF file from your device</p>
+                    <p class="upload-subtext">Click here or drag and drop your PDF file</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PDF Viewer -->
+        <section id="pdf-viewer-container">
+            <div class="viewer-header">
+                <div class="viewer-title" id="pdf-title">document.pdf</div>
+                <div class="viewer-controls">
+                    <button class="control-btn" id="zoom-in" title="Zoom In">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="control-btn" id="zoom-out" title="Zoom Out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <button class="control-btn" id="search-pdf" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="control-btn" id="download-pdf" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="control-btn" id="print-pdf" title="Print">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <button class="control-btn" id="invert-colors" title="Invert Colors">
+                        <i class="fas fa-adjust"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="viewer-body">
+                <!-- Vertical View -->
+                <div id="pdf-vertical-view"></div>
+                
+                <div class="page-info">
+                    <span id="page-count">0</span> pages total
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal-overlay" id="search-overlay"></div>
+    <div id="search-modal">
+        <div class="search-header">
+            <h3 class="search-title">Search in PDF</h3>
+            <button class="close-search" id="close-search">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="search-input-container">
+            <input type="text" class="search-input" id="search-input" placeholder="Enter text to search...">
+            <button class="search-btn" id="perform-search">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+        <div class="search-results" id="search-results">
+            <div class="search-result-item">No results yet. Enter a search term above.</div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal-overlay" id="share-overlay"></div>
+    <div id="share-modal">
+        <div class="share-header">
+            <h3 class="share-title">Share PDF</h3>
+            <button class="close-share" id="close-share">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="share-options">
+            <div class="share-option" id="share-whatsapp">
+                <div class="share-icon">
+                    <i class="fab fa-whatsapp"></i>
+                </div>
+                <div class="share-option-name">WhatsApp</div>
+            </div>
+            <div class="share-option" id="share-telegram">
+                <div class="share-icon">
+                    <i class="fab fa-telegram"></i>
+                </div>
+                <div class="share-option-name">Telegram</div>
+            </div>
+            <div class="share-option" id="share-twitter">
+                <div class="share-icon">
+                    <i class="fab fa-twitter"></i>
+                </div>
+                <div class="share-option-name">Twitter</div>
+            </div>
+        </div>
+        <div class="share-link-container">
+            <input type="text" class="share-link-input" id="share-link-input" readonly>
+            <button class="copy-link-btn" id="copy-link-btn">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+    </div>
+
+    <!-- Full Screen PDF View -->
+    <div id="fullscreen-pdf-view">
+        <div class="fullscreen-header">
+            <div class="fullscreen-title" id="fullscreen-pdf-title">document.pdf</div>
+            <div class="fullscreen-controls">
+                <button class="fullscreen-control-btn" id="fullscreen-zoom-in" title="Zoom In">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+                <button class="fullscreen-control-btn" id="fullscreen-zoom-out" title="Zoom Out">
+                    <i class="fas fa-search-minus"></i>
+                </button>
+                <button class="fullscreen-control-btn" id="fullscreen-prev" title="Previous Page">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="fullscreen-control-btn" id="fullscreen-next" title="Next Page">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button class="fullscreen-control-btn" id="exit-fullscreen" title="Exit Fullscreen">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="fullscreen-body">
+            <div class="fullscreen-page-container">
+                <canvas id="fullscreen-canvas" class="fullscreen-canvas"></canvas>
+            </div>
+        </div>
+        <div class="fullscreen-page-info">
+            Page <span id="fullscreen-page-num">1</span> of <span id="fullscreen-page-count">0</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p class="footer-text">
+            <i class="fas fa-code"></i> Website Developed By Murli Kumar
+        </p>
+        <div class="footer-links">
+            <a href="https://t.me/Learnix_official" class="footer-link" target="_blank">
+                <i class="fab fa-telegram"></i> Telegram
+            </a>
+            <a href="#" class="footer-link">
+                <i class="fas fa-globe"></i> Learnix Main Site
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        // Set PDF.js worker path
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        // DOM Elements
+        const preloader = document.getElementById('preloader');
+        const welcomeModal = document.getElementById('welcome-modal');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const themeToggle = document.getElementById('theme-toggle');
+        const pdfUrlInput = document.getElementById('pdf-url');
+        const loadPdfBtn = document.getElementById('load-pdf');
+        const fileInput = document.getElementById('file-input');
+        const uploadArea = document.getElementById('upload-area');
+        const pdfViewerContainer = document.getElementById('pdf-viewer-container');
+        const pdfTitle = document.getElementById('pdf-title');
+        const zoomInBtn = document.getElementById('zoom-in');
+        const zoomOutBtn = document.getElementById('zoom-out');
+        const searchPdfBtn = document.getElementById('search-pdf');
+        const downloadPdfBtn = document.getElementById('download-pdf');
+        const printPdfBtn = document.getElementById('print-pdf');
+        const invertColorsBtn = document.getElementById('invert-colors');
+        const pdfVerticalView = document.getElementById('pdf-vertical-view');
+        const pageCountElement = document.getElementById('page-count');
+        const shareBtn = document.getElementById('share-btn');
+        
+        // Search elements
+        const searchOverlay = document.getElementById('search-overlay');
+        const searchModal = document.getElementById('search-modal');
+        const searchInput = document.getElementById('search-input');
+        const performSearchBtn = document.getElementById('perform-search');
+        const searchResults = document.getElementById('search-results');
+        const closeSearchBtn = document.getElementById('close-search');
+        
+        // Share elements
+        const shareOverlay = document.getElementById('share-overlay');
+        const shareModal = document.getElementById('share-modal');
+        const shareLinkInput = document.getElementById('share-link-input');
+        const copyLinkBtn = document.getElementById('copy-link-btn');
+        const closeShareBtn = document.getElementById('close-share');
+        const shareWhatsapp = document.getElementById('share-whatsapp');
+        const shareTelegram = document.getElementById('share-telegram');
+        const shareTwitter = document.getElementById('share-twitter');
+        
+        // Full screen elements
+        const fullscreenView = document.getElementById('fullscreen-pdf-view');
+        const fullscreenTitle = document.getElementById('fullscreen-pdf-title');
+        const fullscreenCanvas = document.getElementById('fullscreen-canvas');
+        const fullscreenZoomInBtn = document.getElementById('fullscreen-zoom-in');
+        const fullscreenZoomOutBtn = document.getElementById('fullscreen-zoom-out');
+        const fullscreenPrevBtn = document.getElementById('fullscreen-prev');
+        const fullscreenNextBtn = document.getElementById('fullscreen-next');
+        const exitFullscreenBtn = document.getElementById('exit-fullscreen');
+        const fullscreenPageNum = document.getElementById('fullscreen-page-num');
+        const fullscreenPageCount = document.getElementById('fullscreen-page-count');
+
+        // App State
+        let currentPdf = null;
+        let currentZoom = 1.2;
+        let fullscreenZoom = 1.5;
+        let isDarkMode = false;
+        let pdfDoc = null;
+        let pdfName = '';
+        let currentFullscreenPage = 1;
+        let searchMatches = [];
+        let currentMatchIndex = -1;
+
+        // Initialize the application
+        function init() {
+            // Show welcome modal on first load
+            const hasSeenModal = localStorage.getItem('hasSeenModal');
+            if (!hasSeenModal) {
+                setTimeout(() => {
+                    welcomeModal.classList.add('active');
+                    localStorage.setItem('hasSeenModal', 'true');
+                }, 1500);
+            }
+
+            // Hide preloader when page is loaded
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    preloader.style.opacity = '0';
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                    }, 500);
+                }, 1500);
+            });
+
+            // Check for PDF URL parameter
+            checkUrlForPdf();
+
+            // Event Listeners
+            closeModalBtn.addEventListener('click', () => {
+                welcomeModal.classList.remove('active');
+            });
+
+            themeToggle.addEventListener('click', toggleTheme);
+            loadPdfBtn.addEventListener('click', loadPdfFromUrl);
+            fileInput.addEventListener('change', handleFileUpload);
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            zoomInBtn.addEventListener('click', zoomIn);
+            zoomOutBtn.addEventListener('click', zoomOut);
+            searchPdfBtn.addEventListener('click', openSearchModal);
+            invertColorsBtn.addEventListener('click', invertColors);
+            shareBtn.addEventListener('click', openShareModal);
+            downloadPdfBtn.addEventListener('click', downloadPdf);
+            printPdfBtn.addEventListener('click', printPdf);
+            
+            // Search event listeners
+            performSearchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            closeSearchBtn.addEventListener('click', closeSearchModal);
+            searchOverlay.addEventListener('click', closeSearchModal);
+            
+            // Share event listeners
+            closeShareBtn.addEventListener('click', closeShareModal);
+            shareOverlay.addEventListener('click', closeShareModal);
+            copyLinkBtn.addEventListener('click', copyShareLink);
+            shareWhatsapp.addEventListener('click', shareOnWhatsapp);
+            shareTelegram.addEventListener('click', shareOnTelegram);
+            shareTwitter.addEventListener('click', shareOnTwitter);
+            
+            // Full screen event listeners
+            fullscreenZoomInBtn.addEventListener('click', fullscreenZoomIn);
+            fullscreenZoomOutBtn.addEventListener('click', fullscreenZoomOut);
+            fullscreenPrevBtn.addEventListener('click', fullscreenPrevPage);
+            fullscreenNextBtn.addEventListener('click', fullscreenNextPage);
+            exitFullscreenBtn.addEventListener('click', exitFullscreen);
+
+            // Allow Enter key to load PDF
+            pdfUrlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    loadPdfFromUrl();
+                }
+            });
+            
+            // ESC key to exit full screen
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && fullscreenView.classList.contains('active')) {
+                    exitFullscreen();
+                }
+            });
+        }
+
+        // Check URL for PDF parameter
+        function checkUrlForPdf() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfUrl = urlParams.get('pdf');
+            
+            if (pdfUrl) {
+                // Decode the URL and load the PDF
+                const decodedUrl = decodeURIComponent(pdfUrl);
+                pdfUrlInput.value = decodedUrl;
+                loadPdfFromUrl();
+            }
+        }
+
+        // Toggle between light and dark themes
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode', isDarkMode);
+            themeToggle.innerHTML = isDarkMode ? 
+                '<i class="fas fa-sun"></i>' : 
+                '<i class="fas fa-moon"></i>';
+        }
+
+        // Load PDF from URL
+        function loadPdfFromUrl() {
+            const url = pdfUrlInput.value.trim();
+            if (!url) {
+                alert('Please enter a valid PDF URL');
+                return;
+            }
+
+            // Show loading state
+            pdfViewerContainer.style.display = 'block';
+            pdfTitle.textContent = 'Loading PDF...';
+            pdfVerticalView.innerHTML = '';
+
+            // Load PDF using PDF.js
+            const loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then((pdf) => {
+                pdfDoc = pdf;
+                currentZoom = 1.2;
+                
+                // Extract PDF name from URL
+                pdfName = url.split('/').pop().split('#')[0].split('?')[0];
+                pdfTitle.textContent = pdfName;
+                pageCountElement.textContent = pdf.numPages;
+                
+                renderAllPages();
+            }).catch((error) => {
+                console.error('Error loading PDF:', error);
+                alert('Failed to load PDF. Please check the URL and try again.');
+            });
+        }
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = function() {
+                    const typedarray = new Uint8Array(this.result);
+                    
+                    // Show loading state
+                    pdfViewerContainer.style.display = 'block';
+                    pdfTitle.textContent = 'Loading PDF...';
+                    pdfVerticalView.innerHTML = '';
+                    
+                    // Load PDF using PDF.js
+                    const loadingTask = pdfjsLib.getDocument(typedarray);
+                    loadingTask.promise.then((pdf) => {
+                        pdfDoc = pdf;
+                        currentZoom = 1.2;
+                        pdfName = file.name;
+                        pdfTitle.textContent = pdfName;
+                        pageCountElement.textContent = pdf.numPages;
+                        
+                        renderAllPages();
+                    }).catch((error) => {
+                        console.error('Error loading PDF:', error);
+                        alert('Failed to load PDF. Please try again.');
+                    });
+                };
+                
+                fileReader.readAsArrayBuffer(file);
+            } else {
+                alert('Please select a valid PDF file.');
+            }
+        }
+
+        // Handle drag over event
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            uploadArea.style.borderColor = 'var(--primary)';
+        }
+
+        // Handle drop event
+        function handleDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            uploadArea.style.borderColor = 'var(--light-gray)';
+            
+            const files = event.dataTransfer.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        }
+
+        // Render all pages in vertical view
+        function renderAllPages() {
+            if (!pdfDoc) return;
+            
+            pdfVerticalView.innerHTML = '';
+            
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                renderPage(pageNum);
+            }
+        }
+
+        // Render a specific page
+        function renderPage(pageNum) {
+            if (!pdfDoc) return;
+            
+            // Get page
+            pdfDoc.getPage(pageNum).then((page) => {
+                // Create canvas container
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page-container';
+                pageDiv.id = `page-${pageNum}`;
+                pageDiv.dataset.pageNumber = pageNum;
+                
+                const canvasContainer = document.createElement('div');
+                canvasContainer.className = 'canvas-container';
+                
+                const canvas = document.createElement('canvas');
+                canvas.className = 'pdf-page-canvas';
+                
+                // Add full screen button
+                const fullscreenBtn = document.createElement('button');
+                fullscreenBtn.className = 'fullscreen-btn';
+                fullscreenBtn.title = 'View in full screen';
+                fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                fullscreenBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openFullscreen(pageNum);
+                });
+                
+                // Make the whole page clickable for full screen
+                pageDiv.addEventListener('click', () => {
+                    openFullscreen(pageNum);
+                });
+                
+                canvasContainer.appendChild(canvas);
+                canvasContainer.appendChild(fullscreenBtn);
+                pageDiv.appendChild(canvasContainer);
+                pdfVerticalView.appendChild(pageDiv);
+                
+                const ctx = canvas.getContext('2d');
+                const viewport = page.getViewport({ scale: currentZoom });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                // Render PDF page
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext);
+            });
+        }
+
+        // Open search modal
+        function openSearchModal() {
+            if (!pdfDoc) {
+                alert('Please load a PDF first');
+                return;
+            }
+            
+            searchModal.classList.add('active');
+            searchOverlay.classList.add('active');
+            searchInput.focus();
+        }
+
+        // Close search modal
+        function closeSearchModal() {
+            searchModal.classList.remove('active');
+            searchOverlay.classList.remove('active');
+            searchInput.value = '';
+            searchResults.innerHTML = '<div class="search-result-item">No results yet. Enter a search term above.</div>';
+        }
+
+        // Perform search in PDF
+        function performSearch() {
+            const searchText = searchInput.value.trim();
+            if (!searchText) {
+                alert('Please enter a search term');
+                return;
+            }
+            
+            searchMatches = [];
+            currentMatchIndex = -1;
+            
+            // Clear previous results
+            searchResults.innerHTML = '<div class="search-result-item">Searching...</div>';
+            
+            // Search through all pages
+            const searchPromises = [];
+            
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                searchPromises.push(
+                    pdfDoc.getPage(pageNum).then((page) => {
+                        return page.getTextContent().then((textContent) => {
+                            const textItems = textContent.items;
+                            let combinedText = '';
+                            
+                            for (let i = 0; i < textItems.length; i++) {
+                                combinedText += textItems[i].str + ' ';
+                            }
+                            
+                            // Simple text search (case insensitive)
+                            const regex = new RegExp(searchText, 'gi');
+                            let match;
+                            
+                            while ((match = regex.exec(combinedText)) !== null) {
+                                searchMatches.push({
+                                    page: pageNum,
+                                    position: match.index,
+                                    text: match[0]
+                                });
+                            }
+                        });
+                    })
+                );
+            }
+            
+            // Process all search promises
+            Promise.all(searchPromises).then(() => {
+                displaySearchResults();
+            });
+        }
+
+        // Display search results
+        function displaySearchResults() {
+            if (searchMatches.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+                return;
+            }
+            
+            searchResults.innerHTML = '';
+            
+            // Group results by page
+            const resultsByPage = {};
+            searchMatches.forEach(match => {
+                if (!resultsByPage[match.page]) {
+                    resultsByPage[match.page] = [];
+                }
+                resultsByPage[match.page].push(match);
+            });
+            
+            // Display results
+            for (const pageNum in resultsByPage) {
+                const pageResults = resultsByPage[pageNum];
+                const resultItem = document.createElement('div');
+                resultItem.className = 'search-result-item';
+                resultItem.innerHTML = `
+                    <strong>Page ${pageNum}</strong>: ${pageResults.length} matches
+                `;
+                
+                resultItem.addEventListener('click', () => {
+                    openFullscreen(parseInt(pageNum));
+                    closeSearchModal();
+                });
+                
+                searchResults.appendChild(resultItem);
+            }
+        }
+
+        // Open share modal
+        function openShareModal() {
+            if (!pdfDoc) {
+                alert('Please load a PDF first');
+                return;
+            }
+            
+            // Generate share URL
+            let shareUrl = window.location.href.split('?')[0]; // Remove existing params
+            
+            if (pdfUrlInput.value) {
+                // If PDF is loaded from URL, include it in the share URL
+                const pdfUrl = encodeURIComponent(pdfUrlInput.value);
+                shareUrl += `?pdf=${pdfUrl}`;
+            }
+            
+            shareLinkInput.value = shareUrl;
+            shareModal.classList.add('active');
+            shareOverlay.classList.add('active');
+        }
+
+        // Close share modal
+        function closeShareModal() {
+            shareModal.classList.remove('active');
+            shareOverlay.classList.remove('active');
+        }
+
+        // Copy share link to clipboard
+        function copyShareLink() {
+            shareLinkInput.select();
+            document.execCommand('copy');
+            
+            // Show confirmation
+            const originalText = copyLinkBtn.innerHTML;
+            copyLinkBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            
+            setTimeout(() => {
+                copyLinkBtn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        // Share on WhatsApp
+        function shareOnWhatsapp() {
+            const text = `Check out this PDF: ${shareLinkInput.value}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Share on Telegram
+        function shareOnTelegram() {
+            const text = `Check out this PDF: ${shareLinkInput.value}`;
+            const url = `https://t.me/share/url?url=${encodeURIComponent(shareLinkInput.value)}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Share on Twitter
+        function shareOnTwitter() {
+            const text = `Check out this PDF: ${shareLinkInput.value}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        // Open full screen view
+        function openFullscreen(pageNum) {
+            if (!pdfDoc) return;
+            
+            currentFullscreenPage = pageNum;
+            fullscreenView.classList.add('active');
+            fullscreenTitle.textContent = pdfName;
+            fullscreenPageCount.textContent = pdfDoc.numPages;
+            
+            renderFullscreenPage(pageNum);
+        }
+
+        // Render page in full screen mode
+        function renderFullscreenPage(pageNum) {
+            if (!pdfDoc) return;
+            
+            pdfDoc.getPage(pageNum).then((page) => {
+                const ctx = fullscreenCanvas.getContext('2d');
+                const viewport = page.getViewport({ scale: fullscreenZoom });
+                fullscreenCanvas.height = viewport.height;
+                fullscreenCanvas.width = viewport.width;
+                
+                // Render PDF page
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                page.render(renderContext);
+                fullscreenPageNum.textContent = pageNum;
+            });
+        }
+
+        // Exit full screen mode
+        function exitFullscreen() {
+            fullscreenView.classList.remove('active');
+        }
+
+        // Full screen navigation
+        function fullscreenPrevPage() {
+            if (currentFullscreenPage <= 1) return;
+            currentFullscreenPage--;
+            renderFullscreenPage(currentFullscreenPage);
+        }
+
+        function fullscreenNextPage() {
+            if (currentFullscreenPage >= pdfDoc.numPages) return;
+            currentFullscreenPage++;
+            renderFullscreenPage(currentFullscreenPage);
+        }
+
+        // Full screen zoom functions
+        function fullscreenZoomIn() {
+            fullscreenZoom += 0.2;
+            renderFullscreenPage(currentFullscreenPage);
+        }
+
+        function fullscreenZoomOut() {
+            if (fullscreenZoom <= 0.5) return;
+            fullscreenZoom -= 0.2;
+            renderFullscreenPage(currentFullscreenPage);
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            currentZoom += 0.2;
+            renderAllPages();
+        }
+
+        function zoomOut() {
+            if (currentZoom <= 0.5) return;
+            currentZoom -= 0.2;
+            renderAllPages();
+        }
+
+        // Invert colors
+        function invertColors() {
+            document.body.classList.toggle('inverted');
+        }
+
+        // Download PDF
+        function downloadPdf() {
+            if (!pdfDoc) return;
+            
+            if (fileInput.files.length) {
+                // Download uploaded file
+                const file = fileInput.files[0];
+                const url = URL.createObjectURL(file);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = pdfName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else {
+                // Download from URL
+                const a = document.createElement('a');
+                a.href = pdfUrlInput.value;
+                a.download = pdfName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        }
+
+        // Print PDF
+        function printPdf() {
+            window.print();
+        }
+
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
